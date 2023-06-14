@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "ngrok": "^5.0.0-beta.2",
     "sqlite3": "^5.1.6",
     "vue": "^3.2.47"
   },

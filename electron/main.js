@@ -1,7 +1,9 @@
 import {app, BrowserWindow, ipcMain} from 'electron'
 import path from 'node:path'
-const sqlite3 = require('sqlite3');
-const server = require('../server');
+
+require('../server');
+require('../database/database')
+const ngrok = require('ngrok')
 
 // The built directory structure
 //
@@ -16,79 +18,64 @@ const server = require('../server');
 process.env.DIST = path.join(__dirname, '../dist')
 process.env.PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
-
 let win
-let db
 
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
 function createWindow() {
-  win = new BrowserWindow({
-    icon: path.join(process.env.PUBLIC, 'electron-vite.svg'),
-    webPreferences: {
-      nodeIntegration: true,
-      preload: path.join(__dirname, 'preload.js'),
-    },
-  })
+    win = new BrowserWindow({
+        icon: path.join(process.env.PUBLIC, 'electron-vite.svg'),
+        width: 1200,
+        minWidth: 1200,
+        minHeight: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true,
+            preload: path.join(__dirname, 'preload.js'),
+        },
+    })
 
-  // Test active push message to Renderer-process.
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', (new Date).toLocaleString())
-  })
+    // Test active push message to Renderer-process.
+    win.webContents.on('did-finish-load', () => {
+        win?.webContents.send('main-process-message', (new Date).toLocaleString())
+    })
 
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL)
-  } else {
-    // win.loadFile('dist/index.html')
-    win.loadFile(path.join(process.env.DIST, 'index.html'))
-  }
+    if (VITE_DEV_SERVER_URL) {
+        win.loadURL(VITE_DEV_SERVER_URL)
+    } else {
+        // win.loadFile('dist/index.html')
+        win.loadFile(path.join(process.env.DIST, 'index.html'))
+    }
 
-  win.webContents.openDevTools()
+    win.webContents.openDevTools()
 }
 
 app.on('window-all-closed', () => {
-  win = null
+    win = null
 })
 
 app.whenReady().then(() => {
-  const dbPath = path.join(__dirname, '../database/database.db');
+    createWindow();
+    startNgrok()
 
-  db = new sqlite3.Database(dbPath); // Đường dẫn đến file SQLite (':memory:' sẽ lưu trữ dữ liệu trong bộ nhớ)
-
-  db.run('CREATE TABLE IF NOT EXISTS groups_a (id INTEGER PRIMARY KEY, name_group TEXT NOT NULL, token_bot TEXT NOT NULL, chat_id TEXT)');
-  db.run('CREATE TABLE IF NOT EXISTS groups_b (id INTEGER PRIMARY KEY, name_group TEXT NOT NULL, token_bot TEXT NOT NULL, chat_id TEXT, admins TEXT, topic_id INTEGER, status_chat BLOB)');
-  db.run('CREATE TABLE IF NOT EXISTS connect_group (id INTEGER PRIMARY KEY, group_a_id INTEGER NOT NULL, group_b_id INTEGER NOT NULL)');
-
-  createWindow();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
+    app.on("activate", () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
+    });
 })
 
-ipcMain.on('getUsers', (event) => {
-  // Truy vấn dữ liệu từ bảng users
-  db.all('SELECT * FROM groups_a', (err, rows) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log('123', rows)
-
-      // Gửi dữ liệu về quy trình render
-      event.reply('users', rows);
+async function startNgrok() {
+    try {
+        const url = await ngrok.connect({
+            addr: 3000
+        });
+        console.log('Url công khai', url);
+    } catch (e) {
+        console.log('Lỗi khi khởi động ngrok:', e);
     }
-  });
-});
+}
 
-ipcMain.on('create_group_a', (event, data) => {
-  db.run('INSERT INTO groups_a (name_group, token_bot, chat_id) VALUES (?, ?, ?)', data, function(err) {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log('User added successfully');
-    }
-  });
-})
+// module.exports = ipcMain

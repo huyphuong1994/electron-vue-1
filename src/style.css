@@ -26,9 +26,9 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  /*place-items: center;*/
+  min-width: 900px;
+  min-height: 600px;
 }
 
 h1 {
@@ -60,9 +60,10 @@ button:focus-visible {
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  /*max-width: 1280px;*/
+  /*margin: 0 auto;*/
+  /*padding: 2rem;*/
   /*text-align: center;*/
 }
 
@@ -77,4 +78,16 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+.border-bottom-1 {
+  border-bottom: 1px solid #d4d4d5;
+}
+
+.border-right-1 {
+  border-right: 1px solid #d4d4d5;
+}
+
+.border-top-1 {
+  border-top: 1px solid #d4d4d5;
 }
