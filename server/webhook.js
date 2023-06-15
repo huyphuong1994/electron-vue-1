@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const {BrowserWindow} = require('electron');
 const dataUtils = require('../database/database')
+const responseUtils = require('./responseUtils');
+const telegram = require('./telegram');
 
 const router = express.Router();
 
@@ -21,25 +23,34 @@ router.post('/webhook', (req, res) => {
     res.sendStatus(200);
 });
 
-router.get('/api/list-group', (req, res) => {
-    // Truy vấn dữ liệu từ bảng users
+router.post('/api/connect-webhook', (req, res) => {
     dataUtils.getListGroup((err, data) => {
         if (err) {
-            console.error(err);
-            res.status(400).send('Internal Server Error');
+            res.json(responseUtils.createResponse('Error', 'Lỗi khi kết nối với webhook teltegram!', [], 400));
+            // res.status(400).send('Internal Server Error');
         } else {
-            res.json(data);
+            if (data.length) {
+                data.forEach(async (item) => {
+                    const tokenBot = item.token_bot;
+                    // Gọi hàm sendMessage từ module telegram để gửi tin nhắn
+                    const response = await telegram.setWebhook(
+                        [
+                            item.id,
+                            item.name_group,
+                            item.token_bot,
+                            item.chat_id,
+                            item.admins,
+                            item.status
+                        ], `${global.ngrokUrl}/webhook`);
+
+                    console.log(response)
+                })
+                // res.json(data);
+            } else {
+                res.json(responseUtils.createResponse('Error', 'Chưa có group nào được thêm vào!', [], 400));
+            }
         }
     });
-})
-
-router.post('/api/create-group', (req, res) => {
-    const {values} = req.body;
-
-    // Sử dụng hàm tạo dữ liệu từ dataUtils
-    dataUtils.createGroup(values);
-
-    res.send('Dữ liệu đã được tạo');
 })
 
 module.exports = router;

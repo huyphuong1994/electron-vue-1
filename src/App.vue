@@ -12,6 +12,7 @@ import HelloWorld from './components/HelloWorld.vue'
 <!--    </a>-->
 <!--  </div>-->
   <HelloWorld/>
+  <notifications position="bottom right"/>
 </template>
 
 <style scoped>

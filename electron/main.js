@@ -71,6 +71,8 @@ async function startNgrok() {
     try {
         const url = await ngrok.connect(3000);
 
+        global.ngrokUrl = url
+
         // Gửi URL công khai qua IPC
         ipcMain.on('getNgrokUrl', (event) => {
             event.reply('ngrokUrl', url);
