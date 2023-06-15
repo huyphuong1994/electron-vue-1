@@ -5,6 +5,19 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  devServer: {
+    port: 4040,
+  },
+  server: {
+    port: 4040,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:3000', // Thay đổi thành URL máy chủ Express của bạn
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
   plugins: [
     vue(),
     electron([

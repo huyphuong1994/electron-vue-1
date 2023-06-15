@@ -20,7 +20,7 @@ process.env.PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.D
 
 let win
 
-// 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
+// Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
 function createWindow() {
@@ -69,9 +69,13 @@ app.whenReady().then(() => {
 
 async function startNgrok() {
     try {
-        const url = await ngrok.connect({
-            addr: 3000
+        const url = await ngrok.connect(3000);
+
+        // Gửi URL công khai qua IPC
+        ipcMain.on('getNgrokUrl', (event) => {
+            event.reply('ngrokUrl', url);
         });
+
         console.log('Url công khai', url);
     } catch (e) {
         console.log('Lỗi khi khởi động ngrok:', e);
