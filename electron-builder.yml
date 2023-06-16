@@ -1,0 +1,6 @@
+appId: com.example.app
+productName: MyApp
+directories:
+  output: ./dist
+mac:
+  target: dmg

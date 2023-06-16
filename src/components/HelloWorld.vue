@@ -2,15 +2,11 @@
   <div class="ui equal width center aligned padded grid">
     <div class="row" style="padding: 0">
       <h3 class="ui block header"
-          style="width: 100%; margin: 0; border-radius: 0; background: #1769ff; color: white; display: flex; align-items: center; justify-content: space-between">
+          style="width: 100%; margin: 0; border-radius: 0; background: rgb(31 41 55); color: white; display: flex; align-items: center; justify-content: space-between">
         <div>
           Trạng Thái Kết Nối
         </div>
-        <div @click="setConnected" class="ui toggle checkbox" :class="connected ? 'checked' : ''">
-          <input type="checkbox" name="gift" tabindex="0" class="hidden">
-          <label>Ngắt kết nối</label>
-        </div>
-        <!--        <img style="width: 25px; height: 25px; margin-right: 30px; cursor: pointer" src="public/connect.svg">-->
+        <Toggle @change="setConnected" v-model="connected" offLabel="OFF" onLabel="ON"/>
       </h3>
     </div>
     <div class="row" style="padding: 0; background: #E8E8E8">
@@ -48,10 +44,7 @@
               </div>
             </h4>
             <div>
-              <div class="ui toggle checkbox">
-                <input type="checkbox" name="public">
-                <label>Subscribe to weekly newsletter</label>
-              </div>
+              <Toggle @change="setConnected" v-model="connected" offLabel="OFF" onLabel="ON"/>
             </div>
           </div>
         </div>
@@ -85,7 +78,7 @@
             <tbody>
             <tr v-for="group in listGroup" :key="group.id">
               <td data-label="Name">{{ group.name_group }}</td>
-              <td data-label="Job">{{ group.status_webhook }}</td>
+              <td data-label="Job">{{ group.status_webhook ? 'Đã Kết Nối' : "Gián Đoạn" }}</td>
             </tr>
             </tbody>
           </table>
@@ -93,7 +86,7 @@
       </div>
     </div>
     <div class="row" style="padding: 0">
-      {{webhookData}}
+      {{ webhookData }}
       <!--      <div class="column">Custom Row</div>-->
     </div>
   </div>
@@ -101,11 +94,15 @@
 
 <script>
 import axios from 'axios';
+import Toggle from '@vueform/toggle'
 
 const {ipcRenderer} = require('electron');
 
 export default {
   name: "ToolTelegram",
+  components: {
+    Toggle,
+  },
   data() {
     return {
       connected: false,
@@ -136,22 +133,70 @@ export default {
     this.fetchData();
   },
   methods: {
-    async setConnected() {
-      this.connected = !this.connected;
-      try {
-        const response = await axios.post(`http://127.0.0.1:3000/api/connect-webhook`)
+    async setConnected(value) {
+      if (value) {
+        try {
+          const response = await axios.post(`http://127.0.0.1:3000/api/connect-webhook`)
 
-        console.log('Kết quả kết nối webhook', response)
-      } catch (e) {
-        console.log('Kết nối webhook', e)
+          if (response.data.code = 200) {
+            this.$notify({
+              title: "Tạo kết nối webhook thành công!",
+              type: 'success'
+            });
+            await this.fetchData();
+          } else {
+            this.$notify({
+              title: "Tạo kết nối webhook thất bại!",
+              type: 'error'
+            });
+          }
+        } catch (e) {
+          this.$notify({
+            title: "Tạo kết nối webhook thất bại!",
+            type: 'error'
+          });
+        }
+      } else {
+        try {
+          const response = await axios.post(`http://127.0.0.1:3000/api/delete-webhook`)
+
+          if (response.data.code = 200) {
+            this.$notify({
+              title: "Ngắt kết nối webhook thành công!",
+              type: 'success'
+            });
+            await this.fetchData();
+          } else {
+            this.$notify({
+              title: "Ngắt kết nối webhook thất bại!",
+              type: 'error'
+            });
+          }
+        } catch (e) {
+          this.$notify({
+            title: "Ngắt kết nối webhook thất bại!",
+            type: 'error'
+          });
+        }
       }
     },
+
     async fetchData() {
       try {
         const response = await axios.get(`http://127.0.0.1:3000/api/list-group`)
 
         if (response.data.code == 200) {
           this.listGroup = response.data.data;
+
+          console.log('1', this.listGroup)
+
+          if (this.listGroup) {
+            this.listGroup.forEach((group) => {
+              if (group.status_webhook) {
+                this.connected = true;
+              }
+            })
+          }
         } else {
           this.$notify({
             title: "Lấy danh sách group lỗi!",
@@ -207,3 +252,6 @@ export default {
   color: #888;
 }
 </style>
+
+<style src="@vueform/toggle/themes/default.css"></style>
+
