@@ -1,6 +1,8 @@
 const express = require('express');
-const webhookRouter = require('./server/webhook');
-const apiRouter = require('./server/api');
+const path = require("path");
+
+const webhookRouter = require(path.resolve(__dirname, 'webhook'));
+const apiRouter = require(path.resolve(__dirname, 'api'));
 const cors = require('cors');
 
 const app = express();

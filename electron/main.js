@@ -1,9 +1,15 @@
 import {app, BrowserWindow, ipcMain} from 'electron'
-import path from 'node:path'
 
-require('../server');
-require('../database/database')
+const path = require('path')
+
+const serve = require(path.resolve(__dirname, 'server'));
+const database = require(path.resolve(__dirname, 'database'));
 const ngrok = require('ngrok')
+
+
+console.log(
+    '123213', path.resolve(__dirname, 'server')
+)
 
 // The built directory structure
 //

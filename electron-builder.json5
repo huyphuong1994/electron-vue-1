@@ -33,6 +33,9 @@
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false
-  }
+    "deleteAppDataOnUninstall": true
+  },
+  "asarUnpack": [
+    "dist-electron/database.db"
+  ]
 }

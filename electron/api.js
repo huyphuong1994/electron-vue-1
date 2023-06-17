@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const dataUtils = require('../database/database');
+const dataUtils = require('./database');
 const responseUtils = require('./responseUtils');
 const telegram = require('./telegram');
 
@@ -13,7 +13,6 @@ router.get('/api/list-group', (req, res) => {
     // Truy vấn dữ liệu từ bảng users
     dataUtils.getListGroup((err, data) => {
         if (err) {
-            console.log('213', err)
             // res.status(400).send('Internal Server Error');
             res.json(responseUtils.createResponse('Error', 'Lỗi khi lấy danh sách group!', [], 400));
         } else {
@@ -30,6 +29,7 @@ router.post('/api/create-group', async (req, res) => {
 
         if (admins.ok) {
             values.push(JSON.stringify(admins.result.map((item) => item.user.id)));
+            values.push(1);
         }
 
         // Sử dụng hàm tạo dữ liệu từ dataUtils
@@ -44,5 +44,16 @@ router.post('/api/create-group', async (req, res) => {
         res.json(responseUtils.createResponse('Error', 'Tạo mới group thất bại!', [], 400));
     }
 });
+
+router.get('/api/list-topic/:group_id', (req, res) => {
+    dataUtils.getListTopicByGroup({group_id: req.params.group_id}, (err, data) => {
+        if (err) {
+            // res.status(400).send('Internal Server Error');
+            res.json(responseUtils.createResponse('Error', 'Lỗi khi lấy danh sách topic!', [], 400));
+        } else {
+            res.json(responseUtils.createResponse('Success', '', data, 200));
+        }
+    })
+})
 
 module.exports = router;

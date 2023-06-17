@@ -22,8 +22,15 @@ export default defineConfig({
     vue(),
     electron([
       {
-        // Main-Process entry file of the Electron App.
-        entry: 'electron/main.js',
+        entry: [
+          'electron/main.js',
+          'electron/server.js',
+          'electron/api.js',
+          'electron/responseUtils.js',
+          'electron/telegram.js',
+          'electron/webhook.js',
+          'electron/database.js',
+        ]
       },
       {
         entry: 'electron/preload.ts',
